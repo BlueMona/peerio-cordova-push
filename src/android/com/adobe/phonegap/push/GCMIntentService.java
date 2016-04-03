@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -15,11 +16,15 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.text.Html;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
+import com.google.android.gms.gcm.GcmReceiver;
+import com.peerio.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,9 +40,9 @@ import java.util.Iterator;
 import java.util.Random;
 
 @SuppressLint("NewApi")
-public class GCMIntentService extends GcmListenerService implements PushConstants {
+public class GCMIntentService extends Service implements PushConstants {
 
-    private static final String LOG_TAG = "PushPlugin_GCMIntentService";
+    private static final String LOG_TAG = "PP_GCMIntentService";
     private static HashMap<Integer, ArrayList<String>> messageMap = new HashMap<Integer, ArrayList<String>>();
 
     public void setNotification(int notId, String message){
@@ -54,7 +59,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
         }
     }
 
-    @Override
+    //@Override
     public void onMessageReceived(String from, Bundle extras) {
         Log.d(LOG_TAG, "onMessage - from: " + from);
 
@@ -65,6 +70,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
 
             extras = normalizeExtras(extras);
 
+            forceShow = true;
             // if we are in the foreground and forceShow is `false` only send data
             if (!forceShow && PushPlugin.isInForeground()) {
                 Log.d(LOG_TAG, "foreground");
@@ -202,13 +208,14 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
         Log.d(LOG_TAG, "title =[" + title + "]");
         Log.d(LOG_TAG, "contentAvailable =[" + contentAvailable + "]");
 
-        if ((message != null && message.length() != 0) ||
-                (title != null && title.length() != 0)) {
+
+   //     if ((message != null && message.length() != 0) ||
+             //   (title != null && title.length() != 0)) {
 
             Log.d(LOG_TAG, "create notification");
 
             createNotification(context, extras);
-        }
+   //     }
 
         if ("1".equals(contentAvailable)) {
             Log.d(LOG_TAG, "send notification event");
@@ -540,7 +547,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
             iconId = resources.getIdentifier(icon, DRAWABLE, packageName);
             Log.d(LOG_TAG, "using icon from plugin options");
         }
-        else if (localIcon != null) {
+        if (iconId == 0 && localIcon != null) {
             iconId = resources.getIdentifier(localIcon, DRAWABLE, packageName);
             Log.d(LOG_TAG, "using icon from plugin options");
         }
@@ -548,6 +555,7 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
             Log.d(LOG_TAG, "no icon resource found - using application icon");
             iconId = context.getApplicationInfo().icon;
         }
+        
         mBuilder.setSmallIcon(iconId);
     }
 
@@ -605,5 +613,37 @@ public class GCMIntentService extends GcmListenerService implements PushConstant
         }
 
         return retval;
+    }
+
+    private void processIntent(Intent paramIntent)
+    {
+        Bundle localBundle = paramIntent.getExtras();
+        for (String key : localBundle.keySet()) {
+            Object value = localBundle.get(key);
+            Log.d(LOG_TAG, String.format("%s %s (%s)", key,
+                value.toString(), value.getClass().getName()));
+        }
+        localBundle.remove("message_type");
+        localBundle.remove("android.support.content.wakelockid");
+        String from = localBundle.getString("from");
+        localBundle.remove("from");
+        onMessageReceived(from, localBundle);
+    }
+
+    public final int onStartCommand(Intent paramIntent, int paramInt1, int paramInt2)
+    {
+        if ("com.google.android.gms.gcm.NOTIFICATION_OPEN".equals(paramIntent.getAction()))
+        {
+            GcmReceiver.completeWakefulIntent(paramIntent);
+        }
+
+        processIntent(paramIntent);
+        return 3;
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 }

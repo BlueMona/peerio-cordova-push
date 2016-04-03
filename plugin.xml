@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+<plugin 
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:amazon="http://schemas.android.com/apk/lib/com.amazon.device.ads"
     xmlns:rim="http://www.blackberry.com/ns/widgets"
-    id="phonegap-plugin-push"
-    version="1.5.3">
+    id="com.peerio.cordova.plugin.push"
+    version="1.5.4">
 
   <name>PushPlugin</name>
 	<description>
@@ -24,6 +24,8 @@
         <engine name="cordova" version=">=3.6.3" />
         <engine name="cordova-android" version=">=4.0.0" />
     </engines>
+
+    <preference name="SENDER_ID" default="605156423279"/>
 
 	<!-- android -->
 	<platform name="android">
@@ -88,6 +90,10 @@
         <source-file src="src/android/com/adobe/phonegap/push/RegistrationIntentService.java" target-dir="src/com/adobe/phonegap/push/" />
         <source-file src="src/android/com/adobe/phonegap/push/PermissionUtils.java" target-dir="src/com/adobe/phonegap/push/" />
 
+        <resource-file src="src/android/res/push.png" target="res/drawable-hdpi/push.png" />
+        <resource-file src="src/android/res/push.png" target="res/drawable-mdpi/push.png" />
+        <resource-file src="src/android/res/push.png" target="res/drawable-xhdpi/push.png" />
+        <resource-file src="src/android/res/push.png" target="res/drawable-xxhdpi/push.png" />
 	</platform>
 
 	<!-- ios -->
