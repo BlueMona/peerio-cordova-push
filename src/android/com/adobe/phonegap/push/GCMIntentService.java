@@ -70,7 +70,6 @@ public class GCMIntentService extends Service implements PushConstants {
 
             extras = normalizeExtras(extras);
 
-            forceShow = true;
             // if we are in the foreground and forceShow is `false` only send data
             if (!forceShow && PushPlugin.isInForeground()) {
                 Log.d(LOG_TAG, "foreground");
